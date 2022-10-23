@@ -186,8 +186,7 @@ def calculate_loss_log(y, tx, w):
             + y[i] * np.log(sigmoid(tx[i].dot(w)))
             + (1 - y[i]) * np.log(1 - sigmoid(tx[i].dot(w)))
         )
-    # return float(- sum / N)
-    return np.asanyarray(-sum / N)
+    return float(-sum / N)
 
 
 def calculate_gradient_log(y, tx, w):
@@ -219,40 +218,22 @@ def logistic_regression(y, tx, initial_w, max_iters, gamma):  # fifth function r
     threshold = 1e-8
     w = initial_w
     losses = []
-    loss = calculate_loss_log(y, tx, w)
-    losses.append(float(loss))
+    loss = np.array(calculate_loss_log(y, tx, w))
+    losses.append(loss)
     # start the logistic regression
     for iter in range(max_iters):
         # get loss and update w.
         w = w - gamma * calculate_gradient_log(y, tx, w)
-        loss = calculate_loss_log(y, tx, w)
+        loss = np.array(calculate_loss_log(y, tx, w))
         # converge criterion
-        losses.append(float(loss))
-        if len(losses) > 1 and np.abs(losses[-1] - losses[-2]) < threshold:
-            break
+        losses.append(loss)
+    #  if len(losses) > 1 and np.abs(losses[-1] - losses[-2]) < threshold:
+    #      break
     print(
         "Average loss with Gradient Descent(GD) using Logistic Regression: ",
         np.mean(losses),
     )
-    # visualization    TBD
-
     return w, loss
-
-
-def calculate_hessian_log(y, tx, w):
-    """return the Hessian of the loss function.
-    Args:
-        y:  shape=(N, 1)
-        tx: shape=(N, D)
-        w:  shape=(D, 1)
-    Returns:
-        a hessian matrix of shape=(D, D)
-    """
-    n = np.shape(tx)[0]
-    s = np.zeros((n, n))
-    for i in range(n):
-        s[i, i] = sigmoid(tx[i].dot(w)) * (1 - sigmoid(tx[i].dot(w)))
-    return (tx.T.dot(s)).dot(tx) / n
 
 
 def reg_logistic_regression(
@@ -274,29 +255,27 @@ def reg_logistic_regression(
     w = initial_w
     threshold = 1e-8
     losses = []
-    loss = calculate_loss_log(y, tx, w)
-    losses.append(float(loss))
+    loss = np.array(calculate_loss_log(y, tx, w))
+    losses.append(loss)
     for iter in range(max_iters):
         # get loss and update w.
         gradient = calculate_gradient_log(y, tx, w) + lambda_ * 2 * w
         w = w - gamma * gradient
-        loss = calculate_loss_log(y, tx, w)
+        loss = np.array(calculate_loss_log(y, tx, w))
         # converge criterion
-        losses.append(float(loss))
+        losses.append(loss)
     # if len(losses) > 1 and np.abs(losses[-1] - losses[-2]) < threshold:
-    #    break
+    #     break
     print(
         "Average loss with Gradient Descent(GD) using Regularized Logistic Regression: ",
         np.mean(losses),
     )
-    # visualization   TBD
-
     return w, loss
 
 
 def predict_labels(w, tx):
-    """Generates class predictions given optimal weights and a test feature matrix"""
+    """Generates class predictions with optimal weights and a test feature matrix. We map the continuous labels [0, 1] to binary labels {-1, 1}"""
     y_label = tx.dot(w)
-    y_label[np.where(y_label <= 0)] = -1
-    y_label[np.where(y_label > 0)] = 1
+    y_label[np.where(y_label <= 0.5)] = -1
+    y_label[np.where(y_label > 0.5)] = 1
     return y_label
