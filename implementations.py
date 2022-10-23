@@ -186,7 +186,8 @@ def calculate_loss_log(y, tx, w):
             + y[i] * np.log(sigmoid(tx[i].dot(w)))
             + (1 - y[i]) * np.log(1 - sigmoid(tx[i].dot(w)))
         )
-    return float(-sum / N)
+    # return float(- sum / N)
+    return np.asanyarray(-sum / N)
 
 
 def calculate_gradient_log(y, tx, w):
@@ -218,13 +219,15 @@ def logistic_regression(y, tx, initial_w, max_iters, gamma):  # fifth function r
     threshold = 1e-8
     w = initial_w
     losses = []
+    loss = calculate_loss_log(y, tx, w)
+    losses.append(float(loss))
     # start the logistic regression
     for iter in range(max_iters):
         # get loss and update w.
         w = w - gamma * calculate_gradient_log(y, tx, w)
         loss = calculate_loss_log(y, tx, w)
         # converge criterion
-        losses.append(loss)
+        losses.append(float(loss))
         if len(losses) > 1 and np.abs(losses[-1] - losses[-2]) < threshold:
             break
     print(
@@ -234,6 +237,22 @@ def logistic_regression(y, tx, initial_w, max_iters, gamma):  # fifth function r
     # visualization    TBD
 
     return w, loss
+
+
+def calculate_hessian_log(y, tx, w):
+    """return the Hessian of the loss function.
+    Args:
+        y:  shape=(N, 1)
+        tx: shape=(N, D)
+        w:  shape=(D, 1)
+    Returns:
+        a hessian matrix of shape=(D, D)
+    """
+    n = np.shape(tx)[0]
+    s = np.zeros((n, n))
+    for i in range(n):
+        s[i, i] = sigmoid(tx[i].dot(w)) * (1 - sigmoid(tx[i].dot(w)))
+    return (tx.T.dot(s)).dot(tx) / n
 
 
 def reg_logistic_regression(
@@ -255,15 +274,17 @@ def reg_logistic_regression(
     w = initial_w
     threshold = 1e-8
     losses = []
+    loss = calculate_loss_log(y, tx, w)
+    losses.append(float(loss))
     for iter in range(max_iters):
         # get loss and update w.
         gradient = calculate_gradient_log(y, tx, w) + lambda_ * 2 * w
-        loss = float(calculate_loss_log(y, tx, w))
         w = w - gamma * gradient
+        loss = calculate_loss_log(y, tx, w)
         # converge criterion
-        losses.append(loss)
-        if len(losses) > 1 and np.abs(losses[-1] - losses[-2]) < threshold:
-            break
+        losses.append(float(loss))
+    # if len(losses) > 1 and np.abs(losses[-1] - losses[-2]) < threshold:
+    #    break
     print(
         "Average loss with Gradient Descent(GD) using Regularized Logistic Regression: ",
         np.mean(losses),
