@@ -299,3 +299,142 @@ def build_k_indices(y_n, k_fold, seed):
     indices = np.random.permutation(num_row)
     k_indices = [indices[k * interval: (k + 1) * interval] for k in range(k_fold)]
     return np.array(k_indices)
+
+
+
+def split_data(x, y, ratio, seed):   
+    """split the train dataset to train and validation dataset based on the split ratio."""
+    np.random.seed(seed)
+    # generate random indices
+    num_row = len(x)
+    indices = np.random.permutation(num_row)
+    index_split = int(np.floor(ratio * num_row))
+    index_train = indices[: index_split]
+    index_val = indices[index_split:]
+    # create split
+    x_tr = x[index_train]
+    x_val = x[index_val]
+    y_tr = y[index_train]
+    y_val = y[index_val] 
+    return x_tr, x_val, y_tr, y_val
+
+
+
+def cross_validation(y, x, k_indices, k):
+    """Split the train dataset to train and validation dataset with respect to k-fold cross validation."""
+    y_test = np.array([])
+    x_test = []
+    for i in k_indices[k]:
+        y_test = np.append(y_test, y[i])
+        x_test.append(x[i])
+    k_indices = np.delete(k_indices, k, axis=0)
+    k_indices = k_indices.ravel()
+    y_train = np.array([])
+    x_train = []
+    for i in k_indices:  
+        y_train = np.append(y_train, y[i])
+        x_train.append(x[i])
+    return np.array(x_train), np.array(x_test), y_train.reshape(-1, 1), y_test
+
+
+
+def _accuracy(Y_pred, Y_true):
+    # This function calculates prediction accuracy
+    # acc = 1 - np.mean(np.abs(Y_pred - Y_true))
+    acc = sum(Y_true == Y_pred) / len(Y_true)
+    return acc
+
+
+
+def _precision(Y_pred, Y_true):
+    prec = Y_pred.T.dot(Y_true.reshape(len(Y_true)))/(Y_pred.sum())
+    # TP = np.sum(np.logical_and(np.equal(Y_true,1),np.equal(Y_pred,1)))
+    # FP = np.sum(np.logical_and(np.equal(Y_true,0),np.equal(Y_pred,1)))
+    # prec = TP / (TP + FP)
+    return prec
+
+
+
+def ridge_plot(mse_rr, acc_rr, prec_rr, lambdas):
+    
+    fig, ax = plt.subplots(1,3,figsize=(15,5))
+    
+    ax[0].semilogx(lambdas, mse_rr, label="MSE", color='r', marker='x', markersize = 4, linestyle='solid', linewidth=2)
+    ax[0].set_xlabel("lambda")
+    ax[0].set_ylabel("MSE Loss")
+    ax[0].legend(loc=0)
+    ax[0].set_title("varied lambda reflected on MSE Loss")
+
+    ax[1].semilogx(lambdas, acc_rr, label="ACC", color='g', marker='x', markersize = 4, linestyle='--', linewidth=2)
+    ax[1].set_xlabel("lambda")
+    ax[1].set_ylabel("accuracy")
+    ax[1].legend(loc=0)
+    ax[1].set_title("varied lambda reflected on accuracy")
+    
+    ax[2].semilogx(lambdas, prec_rr, label="prec", color='b', marker='x', markersize = 4, linestyle='-.', linewidth=2)
+    ax[2].set_xlabel("lambda")
+    ax[2].set_ylabel("precision")
+    ax[2].legend(loc=0)
+    ax[2].set_title("varied lambda reflected on precision")
+
+    
+    plt.show()
+    
+    
+    
+    
+def ridge_regression_loop(y_train, tx_train, k_indices, k_fold):
+    """loop to find best lambda"""
+    lambdas = np.logspace(-10, 3, 20)
+    mse_rr = []
+    acc_rr = []
+    prec_rr = []
+    # ridge regression with different lambda
+    for idx, lam in enumerate(lambdas):
+        losses_temp = []
+        accs_temp = []
+        prec_temp = []
+        for k in range(k_fold):
+            x_tr, x_val, y_tr, y_val = cross_validation(y_train, tx_train, k_indices, k)
+            w, loss = ridge_regression(y_tr, x_tr, lam)
+            y_pred = predict_labels(w, x_val)
+            acc = _accuracy(y_pred, y_val)
+            prec = _precision(y_pred, y_val)
+            accs_temp.append(acc)
+            losses_temp.append(loss)
+            prec_temp.append(prec)
+        mse_rr.append(np.mean(losses_temp))
+        acc_rr.append(np.mean(accs_temp))
+        prec_rr.append(np.mean(prec_temp))
+        # print("Average test prediction accuracy over " + str(k_fold) + " folds is " + str(np.mean(accs_temp)))
+
+
+    ridge_plot(mse_rr, acc_rr, prec_rr, lambdas)
+    
+    
+    
+def delete_related_features(matrix, delete_index):
+    """Delete features that have high correlation."""
+    
+    matrix = np.delete(matrix, delete_index, 1)
+    return matrix
+
+
+
+def fix_null_value(data):
+    """Replace the null values with the mean of the corresponding column"""
+    for col in range(data.shape[1]):
+        null_index = np.where(data[:,col] == -999)[0]
+        data_clean = [x for x in data[:,col] if x != -999]  
+        col_mean = np.mean(data_clean)
+        data[null_index, col] = col_mean
+    return data
+
+
+
+def build_poly(x, degree):
+    """polynomial basis functions for input data x, for j=0 up to j=degree."""
+    poly = x
+    for i in range(2, degree+1):
+        poly = np.append(poly, x ** i, axis=1)
+    return poly
