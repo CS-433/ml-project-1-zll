@@ -36,6 +36,7 @@ tx_train = (tx_train - np.mean(tx_train,axis=0)) / np.std(tx_train,axis=0)
 # data preprocessing -- build polynomial extension for input features
 degree = 3
 tx_train = build_poly(tx_train, degree)
+tx_test = build_poly(tx_test, degree)
 
 
 # add offset to the feature matrix tx_train and tx_test
