@@ -334,11 +334,11 @@ def cross_validation(y, x, k_indices, k):
     for i in k_indices:  
         y_train = np.append(y_train, y[i])
         x_train.append(x[i])
-    return np.array(x_train), np.array(x_test), y_train.reshape(-1, 1), y_test
+    return np.array(x_train), np.array(x_test), y_train, y_test
 
 
 
-def _accuracy(Y_pred, Y_true):
+def accuracy(Y_pred, Y_true):
     # This function calculates prediction accuracy
     # acc = 1 - np.mean(np.abs(Y_pred - Y_true))
     acc = sum(Y_true == Y_pred) / len(Y_true)
