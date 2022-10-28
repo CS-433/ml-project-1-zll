@@ -1,4 +1,6 @@
-def compute_loss_mse(y, tx, w):
+import numpy as np
+
+def compute_loss_mse(y, tx, w):      
     """Calculate the loss using MSE.
     Args:
         y: shape=(N, )
@@ -9,6 +11,7 @@ def compute_loss_mse(y, tx, w):
     """
     e = y - np.dot(tx, w)
     return np.mean(e**2) / 2
+
 
 
 def compute_gradient(y, tx, w):
@@ -25,9 +28,8 @@ def compute_gradient(y, tx, w):
     return grad
 
 
-def mean_squared_error_gd(
-    y, tx, initial_w, max_iters, gamma
-):  # first function required
+
+def mean_squared_error_gd(y, tx, initial_w, max_iters, gamma):        # first function required
     """The Gradient Descent (GD) algorithm using mean squared error.
     Args:
         y: shape=(N, )
@@ -45,11 +47,12 @@ def mean_squared_error_gd(
     losses.append(loss)
     for n_iter in range(max_iters):
         grad = compute_gradient(y, tx, w)
-        w = w - gamma * grad
+        w = w - gamma * grad  
         loss = compute_loss_mse(y, tx, w)
         losses.append(loss)
-    print("Average loss with Gradient Descent(GD): ", np.mean(losses))
+    print('Average loss with Gradient Descent(GD): ', np.mean(losses))
     return w, loss
+
 
 
 def compute_stoch_gradient(y, tx, w):
@@ -62,8 +65,9 @@ def compute_stoch_gradient(y, tx, w):
         An array of shape (2, ) (same shape as w), containing the stochastic gradient of the loss at w.
     """
     e = y - np.dot(tx, w)
-    grad = -np.dot(tx.T, e) / len(e)
+    grad = - np.dot(tx.T, e) / len(e)
     return grad
+
 
 
 def batch_iter(y, tx, batch_size, num_batches=1, shuffle=True):
@@ -92,9 +96,8 @@ def batch_iter(y, tx, batch_size, num_batches=1, shuffle=True):
             yield shuffled_y[start_index:end_index], shuffled_tx[start_index:end_index]
 
 
-def mean_squared_error_sgd(
-    y, tx, initial_w, max_iters, gamma
-):  # second function required
+            
+def mean_squared_error_sgd(y, tx, initial_w, max_iters, gamma):      # second function required
     """The Stochastic Gradient Descent algorithm (SGD) using mean squared error.
     Args:
         y: shape=(N, )
@@ -111,21 +114,22 @@ def mean_squared_error_sgd(
     loss = compute_loss_mse(y, tx, w)
     losses.append(loss)
     for n_iter in range(max_iters):
-        for minibatch_y, minibatch_tx in batch_iter(y, tx, batch_size=1, num_batches=1):
+         for minibatch_y, minibatch_tx in batch_iter(y, tx, batch_size=1, num_batches=1):
             grad = compute_stoch_gradient(minibatch_y, minibatch_tx, w)
             w = w - gamma * grad
             loss = compute_loss_mse(minibatch_y, minibatch_tx, w)
             losses.append(loss)
-    print("Average loss with Stochastic Gradient Descent(SGD): ", np.mean(losses))
+    print('Average loss with Stochastic Gradient Descent(SGD): ', np.mean(losses))
     return w, loss
 
 
-def least_squares(y, tx):  # third function required
+
+def least_squares(y, tx):                                            # third function required
     """Calculate the least squares solution.
-       returns mse, and optimal weights.
+       returns mse, and optimal weights.    
     Args:
         y: numpy array of shape (N,), N is the number of samples.
-        tx: numpy array of shape (N,D), D is the number of features.
+        tx: numpy array of shape (N,D), D is the number of features.   
     Returns:
         w: optimal weights, numpy array of shape(D,), D is the number of features.
         loss: the loss value (scalar) of the least squares solution
@@ -133,12 +137,13 @@ def least_squares(y, tx):  # third function required
     w = np.linalg.solve(tx.T.dot(tx), tx.T.dot(y))
     e = y - np.dot(tx, w)
     loss = np.mean(e**2) / 2
-    print("Loss with Least Square: ", loss)
+    print('Loss with Least Square: ', loss)
     return w, loss
 
 
-def ridge_regression(y, tx, lambda_):  # fourth function required
-    """implement ridge regression.
+
+def ridge_regression(y, tx, lambda_):                                # fourth function required
+    """implement ridge regression.  
     Args:
         y: numpy array of shape (N,), N is the number of samples.
         tx: numpy array of shape (N,D), D is the number of features.
@@ -150,8 +155,9 @@ def ridge_regression(y, tx, lambda_):  # fourth function required
     lam = 2 * np.shape(tx)[0] * lambda_
     w = np.linalg.solve(tx.T.dot(tx) + lam * np.eye(np.shape(tx)[1]), tx.T.dot(y))
     loss = compute_loss_mse(y, tx, w)
-    print("Loss with Ridge Regression: ", loss)
+    print('Loss with Ridge Regression: ', loss)
     return w, loss
+
 
 
 def sigmoid(t):
@@ -164,22 +170,22 @@ def sigmoid(t):
     return 1 / (1 + np.exp(-t))
 
 
+
 def calculate_loss_log(y, tx, w):
     """compute the cost by negative log likelihood.
     Args:
         y:  shape=(N, 1)
         tx: shape=(N, D)
-        w:  shape=(D, 1). The vector of model parameters.
+        w:  shape=(D, 1). The vector of model parameters. 
     Returns:
         a non-negative loss, corresponding to the input parameters w.
     """
     assert y.shape[0] == tx.shape[0]
     assert tx.shape[1] == w.shape[0]
     N = np.shape(tx)[0]
-    sum = y.T.dot(np.log(sigmoid(tx.dot(w)))) + (1 - y).T.dot(
-        np.log(1 - sigmoid(tx.dot(w)))
-    )
-    return np.squeeze(-sum / N).item()
+    sum = y.T.dot(np.log(sigmoid(tx.dot(w)))) + (1 - y).T.dot(np.log(1 - sigmoid(tx.dot(w))))
+    return np.squeeze(- sum / N).item()
+
 
 
 def calculate_gradient_log(y, tx, w):
@@ -187,7 +193,7 @@ def calculate_gradient_log(y, tx, w):
     Args:
         y:  shape=(N, 1)
         tx: shape=(N, D)
-        w:  shape=(D, 1).  The vector of model parameters.
+        w:  shape=(D, 1).  The vector of model parameters. 
     Returns:
         a vector of shape (D, 1), containing the gradient of the loss at w.
     """
@@ -195,18 +201,19 @@ def calculate_gradient_log(y, tx, w):
     return tx.T.dot(sigmoid(tx.dot(w)) - y) / n
 
 
-def logistic_regression(y, tx, initial_w, max_iters, gamma):  # fifth function required
+
+def logistic_regression(y, tx, initial_w, max_iters, gamma):           # fifth function required
     """
     Do Logistic Regression using the Gradient Descent. Return the loss and the optimal weights w.
     Args:
         y:  shape=(N, 1)
         tx: shape=(N, D)
-        initial_w:  shape=(D, 1)
+        initial_w:  shape=(D, 1) 
         max_iters: a scalar denoting the total number of iterations of logistic_regression
         gamma: float
     Returns:
         loss: scalar number, the loss value (scalar) of the last iteration of logistic regression
-        w: shape=(D, 1), the model parameters of last iteration of logistic regression
+        w: shape=(D, 1), the model parameters of last iteration of logistic regression 
     """
     threshold = 1e-8
     w = initial_w
@@ -220,18 +227,13 @@ def logistic_regression(y, tx, initial_w, max_iters, gamma):  # fifth function r
         loss = np.array(calculate_loss_log(y, tx, w))
         # converge criterion
         losses.append(loss)
-    # if len(losses) > 1 and np.abs(losses[-1] - losses[-2]) < threshold:
-    #     break
-    print(
-        "Average loss with Gradient Descent(GD) using Logistic Regression: ",
-        np.mean(losses),
-    )
+       # if len(losses) > 1 and np.abs(losses[-1] - losses[-2]) < threshold:
+       #     break
+    print('Average loss with Gradient Descent(GD) using Logistic Regression: ', np.mean(losses))    
     return w, loss
 
 
-def reg_logistic_regression(
-    y, tx, lambda_, initial_w, max_iters, gamma
-):  # sixth function required
+def reg_logistic_regression(y, tx, lambda_, initial_w, max_iters, gamma):     # sixth function required
     """
     Do Regularized Logistic Regression using the Gradient Descent. Return the loss and the optimal weights w.
     Args:
@@ -244,7 +246,7 @@ def reg_logistic_regression(
     Returns:
         loss: scalar number, the loss value (scalar) of the last iteration of penalized logistic regression
         w: shape=(D, 1), the model parameters of last iteration of regularized logistic regression
-    """
+    """    
     w = initial_w
     threshold = 1e-8
     losses = []
@@ -252,18 +254,17 @@ def reg_logistic_regression(
     losses.append(loss)
     for iter in range(max_iters):
         # get loss and update w.
-        gradient = calculate_gradient_log(y, tx, w) + lambda_ * 2 * w
+        gradient = calculate_gradient_log(y, tx, w) + lambda_*2*w        
         w = w - gamma * gradient
-        loss = np.array(calculate_loss_log(y, tx, w))
+        loss = np.array(calculate_loss_log(y, tx, w)) 
         # converge criterion
         losses.append(loss)
-        # if len(losses) > 1 and np.abs(losses[-1] - losses[-2]) < threshold:
+        #if len(losses) > 1 and np.abs(losses[-1] - losses[-2]) < threshold:
         #    break
-    print(
-        "Average loss with Gradient Descent(GD) using Regularized Logistic Regression: ",
-        np.mean(losses),
-    )
+    print('Average loss with Gradient Descent(GD) using Regularized Logistic Regression: ', np.mean(losses))          
     return w, loss
+
+
 
 
 def predict_labels(w, tx):
@@ -274,8 +275,9 @@ def predict_labels(w, tx):
     return y_label
 
 
+
 def build_k_indices(y_n, k_fold, seed):
-    """build k indices for k-fold.
+    """build k indices for k-fold.  
     Args:
         y_n:    number of labels
         k_fold: K in K-fold, i.e. the fold num
@@ -287,29 +289,31 @@ def build_k_indices(y_n, k_fold, seed):
     array([[3, 2],
            [0, 1]])
     """
-    num_row = y_n  # y_n = y.shape[0]
+    num_row = y_n       # y_n = y.shape[0]
     interval = int(num_row / k_fold)
     np.random.seed(seed)
     indices = np.random.permutation(num_row)
-    k_indices = [indices[k * interval : (k + 1) * interval] for k in range(k_fold)]
+    k_indices = [indices[k * interval: (k + 1) * interval] for k in range(k_fold)]
     return np.array(k_indices)
 
 
-def split_data(x, y, ratio, seed):
+
+def split_data(x, y, ratio, seed):   
     """split the train dataset to train and validation dataset based on the split ratio."""
     np.random.seed(seed)
     # generate random indices
     num_row = len(x)
     indices = np.random.permutation(num_row)
     index_split = int(np.floor(ratio * num_row))
-    index_train = indices[:index_split]
+    index_train = indices[: index_split]
     index_val = indices[index_split:]
     # create split
     x_tr = x[index_train]
     x_val = x[index_val]
     y_tr = y[index_train]
-    y_val = y[index_val]
+    y_val = y[index_val] 
     return x_tr, x_val, y_tr, y_val
+
 
 
 def cross_validation(y, x, k_indices, k):
@@ -323,10 +327,11 @@ def cross_validation(y, x, k_indices, k):
     k_indices = k_indices.ravel()
     y_train = np.array([])
     x_train = []
-    for i in k_indices:
+    for i in k_indices:  
         y_train = np.append(y_train, y[i])
         x_train.append(x[i])
     return np.array(x_train), np.array(x_test), y_train, y_test
+
 
 
 def _accuracy(Y_pred, Y_true):
@@ -336,87 +341,67 @@ def _accuracy(Y_pred, Y_true):
     return acc
 
 
+
 def _precision(Y_pred, Y_true):
     # This function calculates precision
-    prec = Y_pred.T.dot(Y_true.reshape(len(Y_true))) / (Y_pred.sum())
+    prec = Y_pred.T.dot(Y_true.reshape(len(Y_true)))/(Y_pred.sum())
     return prec
 
 
+    
+    
 def delete_related_features(matrix, delete_index):
     """Delete features that have high correlation."""
     matrix = np.delete(matrix, delete_index, 1)
     return matrix
 
 
+
 def fix_null_value(data):
     """Replace the null values with the mean of the corresponding column"""
     for col in range(data.shape[1]):
-        null_index = np.where(data[:, col] == -999)[0]
-        data_clean = [x for x in data[:, col] if x != -999]
+        null_index = np.where(data[:,col] == -999)[0]
+        data_clean = [x for x in data[:,col] if x != -999]  
         col_mean = np.mean(data_clean)
         data[null_index, col] = col_mean
     return data
 
 
+
 def build_poly(x, degree):
     """polynomial basis functions for input data x, for j=0 up to j=degree."""
     poly = x
-    for i in range(2, degree + 1):
-        poly = np.append(poly, x**i, axis=1)
+    for i in range(2, degree+1):
+        poly = np.append(poly, x ** i, axis=1)
     return poly
 
 
+
 def ridge_plot(mse_rr, acc_rr, prec_rr, lambdas):
-
-    fig, ax = plt.subplots(1, 3, figsize=(15, 5))
-
-    ax[0].semilogx(
-        lambdas,
-        mse_rr,
-        label="MSE",
-        color="r",
-        marker="x",
-        markersize=4,
-        linestyle="solid",
-        linewidth=2,
-    )
+    
+    fig, ax = plt.subplots(1,3,figsize=(15,5))
+    
+    ax[0].semilogx(lambdas, mse_rr, label="MSE", color='r', marker='x', markersize = 4, linestyle='solid', linewidth=2)
     ax[0].set_xlabel("lambda")
     ax[0].set_ylabel("MSE Loss")
     ax[0].legend(loc=0)
     ax[0].set_title("varied lambda reflected on MSE Loss")
 
-    ax[1].semilogx(
-        lambdas,
-        acc_rr,
-        label="ACC",
-        color="g",
-        marker="x",
-        markersize=4,
-        linestyle="--",
-        linewidth=2,
-    )
+    ax[1].semilogx(lambdas, acc_rr, label="ACC", color='g', marker='x', markersize = 4, linestyle='--', linewidth=2)
     ax[1].set_xlabel("lambda")
     ax[1].set_ylabel("accuracy")
     ax[1].legend(loc=0)
     ax[1].set_title("varied lambda reflected on accuracy")
-
-    ax[2].semilogx(
-        lambdas,
-        prec_rr,
-        label="prec",
-        color="b",
-        marker="x",
-        markersize=4,
-        linestyle="-.",
-        linewidth=2,
-    )
+    
+    ax[2].semilogx(lambdas, prec_rr, label="prec", color='b', marker='x', markersize = 4, linestyle='-.', linewidth=2)
     ax[2].set_xlabel("lambda")
     ax[2].set_ylabel("precision")
     ax[2].legend(loc=0)
     ax[2].set_title("varied lambda reflected on precision")
-    plt.savefig("lambda_loop.png", bbox_inches="tight")
-
-
+    plt.savefig('lambda_loop.png', bbox_inches='tight')
+    
+    
+    
 def ridge_regression_loop(y_train, tx_train, k_indices, k_fold):
     """loop to find best lambda"""
     lambdas = np.logspace(-10, 3, 20)
@@ -442,3 +427,4 @@ def ridge_regression_loop(y_train, tx_train, k_indices, k_fold):
         prec_rr.append(np.mean(prec_temp))
         # print("Average test prediction accuracy over " + str(k_fold) + " folds is " + str(np.mean(accs_temp)))
     ridge_plot(mse_rr, acc_rr, prec_rr, lambdas)
+
