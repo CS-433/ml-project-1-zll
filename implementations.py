@@ -338,7 +338,7 @@ def cross_validation(y, x, k_indices, k):
 
 
 
-def accuracy(Y_pred, Y_true):
+def _accuracy(Y_pred, Y_true):
     # This function calculates prediction accuracy
     # acc = 1 - np.mean(np.abs(Y_pred - Y_true))
     acc = sum(Y_true == Y_pred) / len(Y_true)
