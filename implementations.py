@@ -1,6 +1,3 @@
-import numpy as np
-
-
 def compute_loss_mse(y, tx, w):      
     """Calculate the loss using MSE.
     Args:
@@ -185,7 +182,7 @@ def calculate_loss_log(y, tx, w):
     assert tx.shape[1] == w.shape[0]
     N = np.shape(tx)[0]
     sum = y.T.dot(np.log(sigmoid(tx.dot(w)))) + (1 - y).T.dot(np.log(1 - sigmoid(tx.dot(w))))
-    return float(- sum / N)
+    return np.squeeze(- sum / N).item()
 
 
 
@@ -205,7 +202,7 @@ def calculate_gradient_log(y, tx, w):
 
 def logistic_regression(y, tx, initial_w, max_iters, gamma):           # fifth function required
     """
-    Do gradient descent using logistic regression. Return the loss and the optimal weights w.
+    Do Logistic Regression using the Gradient Descent. Return the loss and the optimal weights w.
     Args:
         y:  shape=(N, 1)
         tx: shape=(N, D)
@@ -234,12 +231,9 @@ def logistic_regression(y, tx, initial_w, max_iters, gamma):           # fifth f
     return w, loss
 
 
-
-
-
 def reg_logistic_regression(y, tx, lambda_, initial_w, max_iters, gamma):     # sixth function required
     """
-    Do gradient descent, using the regularized logistic regression. Return the loss and the optimal weights w.
+    Do Regularized Logistic Regression using the Gradient Descent. Return the loss and the optimal weights w.
     Args:
         y:  shape=(N, 1)
         tx: shape=(N, D)
@@ -347,11 +341,37 @@ def _accuracy(Y_pred, Y_true):
 
 
 def _precision(Y_pred, Y_true):
+    # This function calculates precision
     prec = Y_pred.T.dot(Y_true.reshape(len(Y_true)))/(Y_pred.sum())
-    # TP = np.sum(np.logical_and(np.equal(Y_true,1),np.equal(Y_pred,1)))
-    # FP = np.sum(np.logical_and(np.equal(Y_true,0),np.equal(Y_pred,1)))
-    # prec = TP / (TP + FP)
     return prec
+
+
+    
+    
+def delete_related_features(matrix, delete_index):
+    """Delete features that have high correlation."""
+    matrix = np.delete(matrix, delete_index, 1)
+    return matrix
+
+
+
+def fix_null_value(data):
+    """Replace the null values with the mean of the corresponding column"""
+    for col in range(data.shape[1]):
+        null_index = np.where(data[:,col] == -999)[0]
+        data_clean = [x for x in data[:,col] if x != -999]  
+        col_mean = np.mean(data_clean)
+        data[null_index, col] = col_mean
+    return data
+
+
+
+def build_poly(x, degree):
+    """polynomial basis functions for input data x, for j=0 up to j=degree."""
+    poly = x
+    for i in range(2, degree+1):
+        poly = np.append(poly, x ** i, axis=1)
+    return poly
 
 
 
@@ -376,10 +396,7 @@ def ridge_plot(mse_rr, acc_rr, prec_rr, lambdas):
     ax[2].set_ylabel("precision")
     ax[2].legend(loc=0)
     ax[2].set_title("varied lambda reflected on precision")
-
-    
-    plt.show()
-    
+    plt.savefig('lambda_loop.png', bbox_inches='tight')
     
     
     
@@ -407,34 +424,5 @@ def ridge_regression_loop(y_train, tx_train, k_indices, k_fold):
         acc_rr.append(np.mean(accs_temp))
         prec_rr.append(np.mean(prec_temp))
         # print("Average test prediction accuracy over " + str(k_fold) + " folds is " + str(np.mean(accs_temp)))
-
-
     ridge_plot(mse_rr, acc_rr, prec_rr, lambdas)
-    
-    
-    
-def delete_related_features(matrix, delete_index):
-    """Delete features that have high correlation."""
-    
-    matrix = np.delete(matrix, delete_index, 1)
-    return matrix
 
-
-
-def fix_null_value(data):
-    """Replace the null values with the mean of the corresponding column"""
-    for col in range(data.shape[1]):
-        null_index = np.where(data[:,col] == -999)[0]
-        data_clean = [x for x in data[:,col] if x != -999]  
-        col_mean = np.mean(data_clean)
-        data[null_index, col] = col_mean
-    return data
-
-
-
-def build_poly(x, degree):
-    """polynomial basis functions for input data x, for j=0 up to j=degree."""
-    poly = x
-    for i in range(2, degree+1):
-        poly = np.append(poly, x ** i, axis=1)
-    return poly

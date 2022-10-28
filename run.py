@@ -47,7 +47,7 @@ def main():
     print("Data preprocessing done.")
 
 
-    # mapping labels from {-1, 1} to {0, 1} in order to apply logistic regression
+    # map labels from {-1, 1} to {0, 1} in order to apply logistic regression
     y_train[np.where(y_train == -1)] = 0
 
 
@@ -55,7 +55,7 @@ def main():
     lambda_ = 1e-5
 
 
-    # choose the best method to obtain predicted labels of our test set
+    # choose the best method to obtain predicted labels of our test set --- CHOOSE RIDGE REGRESSION HERE
     w, loss = ridge_regression(y_train, tx_train, lambda_)
     y_test = predict_labels(w, tx_test)
 
